@@ -1,17 +1,13 @@
 import {
   ConflictException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service.js';
-import { user } from '@prisma/client';
 import { RegisterDto } from './dto.ts/register.dto.js';
 import { LoginDto } from './dto.ts/login.dto.js';
-import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +15,24 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
   ) {}
+
+  async validateAdmin(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email or password incorrect');
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Email or password incorrect');
+    }
+
+    return user;
+  }
 
   async register(dto: RegisterDto) {
     const isExists = await this.prisma.user.findUnique({
@@ -57,7 +71,7 @@ export class AuthService {
     const payload = { id: user.id, email: user.email };
 
     return {
-      token: this.jwtService.sign(payload),
+      token: this.jwtService.sign(payload, { secret: 'SECRET_KEY' }),
     };
   }
   async logout(email: string) {
