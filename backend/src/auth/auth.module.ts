@@ -4,10 +4,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '../prisma.module.js';
 import { AuthService } from './auth.service.js';
-import { JwtStrategy } from './jwt.strategy.js';
+// import { JwtStrategy } from './jwt.strategy.js';
 import { AuthController } from './auth.controller.js';
 import { LocalStrategy } from './local.strategy.js';
 import { UserModule } from '../user/user.module.js';
+import { JwtStrategy } from './jwt.strategy.js';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { UserModule } from '../user/user.module.js';
     }),
     PrismaModule,
   ],
-  providers: [AuthService, JwtStrategy, LocalStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

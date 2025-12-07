@@ -6,10 +6,10 @@ import { PrismaModule } from './prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { GroupModule } from './group/group.module';
-import { NoteModule } from './note/note.module';
+import { NotesModule } from './note/note.module';
 
 @Module({
-  imports: [PrismaModule, UserModule, AuthModule, GroupModule, NoteModule],
+  imports: [PrismaModule, UserModule, AuthModule, GroupModule, NotesModule],
   controllers: [AppController],
   providers: [AppService],
 })

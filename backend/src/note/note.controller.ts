@@ -1,36 +1,50 @@
-import { Controller } from '@nestjs/common';
-
-// import { LocalAuthGuard } from 'src/auth/local-auth.guard';
-import { NoteService } from './note.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { NotesService } from './note.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateNoteDto } from './dto/create-note.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 
 @Controller('notes')
-export class NoteController {
-  constructor(private readonly service: NoteService) {}
+export class NotesController {
+  constructor(private readonly notesService: NotesService) {}
 
-  //   @Post()
-  //   @UseGuards(LocalAuthGuard)
-  //   create(@Body() dto: CreateUserDto) {
-  //     return this.service.create(dto);
-  //   }
-  //   @UseGuards(LocalAuthGuard)
-  //   @Get()
-  //   getAll() {
-  //     return this.service.findAll();
-  //   }
-  //   @UseGuards(LocalAuthGuard)
-  //   @Get(':id')
-  //   @UseGuards(LocalAuthGuard)
-  //   getById(@Param('id') id: string) {
-  //     return this.service.findById(id);
-  //   }
-  //   @UseGuards(LocalAuthGuard)
-  //   @Put(':id')
-  //   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-  //     return this.service.update(id, dto);
-  //   }
-  //   @UseGuards(LocalAuthGuard)
-  //   @Delete(':id')
-  //   delete(@Param('id') id: string) {
-  //     return this.service.delete(id);
-  //   }
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  create(@Body() dto: CreateNoteDto, @Req() req) {
+    return this.notesService.create(dto, req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('group/:groupId')
+  findAll(@Param('groupId') groupId: string) {
+    return this.notesService.findAllByGroup(groupId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.notesService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateNoteDto) {
+    return this.notesService.update(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.notesService.remove(id);
+  }
 }

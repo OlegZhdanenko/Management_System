@@ -16,19 +16,23 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
+  verifyToken(token: string): { email: string; id: string } {
+    return this.jwtService.verify(token, { secret: 'SECRET_KEY' });
+  }
+
   async validateAdmin(email: string, password: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Email or password incorrect');
+      throw new UnauthorizedException('Email or password incorrecttttttt');
     }
 
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-      throw new UnauthorizedException('Email or password incorrect');
+      throw new UnauthorizedException('Email or password incorrec');
     }
 
     return user;
@@ -53,13 +57,14 @@ export class AuthService {
     });
     return newUser;
   }
+
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Email or password incorrect');
+      throw new UnauthorizedException('Email or password incorrectttttt');
     }
 
     const isValid = await bcrypt.compare(dto.password, user.password);
@@ -72,8 +77,10 @@ export class AuthService {
 
     return {
       token: this.jwtService.sign(payload, { secret: 'SECRET_KEY' }),
+      user,
     };
   }
+
   async logout(email: string) {
     await this.prisma.user.update({
       where: { email: email },
@@ -81,5 +88,10 @@ export class AuthService {
     });
 
     return { message: 'Logged out successfully' };
+  }
+
+  async getUserByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email: email } });
+    return user;
   }
 }

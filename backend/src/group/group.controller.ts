@@ -1,37 +1,52 @@
-import { Controller } from '@nestjs/common';
-import { GroupService } from './group.service';
-// import { LocalAuthGuard } from "src/auth/local-auth.guard";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import { GroupsService } from './group.service';
 
-@Controller('group')
-export class GroupController {
-  constructor(private readonly service: GroupService) {}
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateGroupDto } from './dto/create-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 
-  //   @Post()
-  //   @UseGuards(LocalAuthGuard)
-  //   create(@Body() dto: CreateUserDto) {
-  //     return this.service.create(dto);
-  //   }
+@Controller('groups')
+export class GroupsController {
+  constructor(private readonly groupsService: GroupsService) {}
 
-  //   @UseGuards(LocalAuthGuard)
-  //   @Get()
-  //   getAll() {
-  //     return this.service.findAll();
-  //   }
-  //   @UseGuards(LocalAuthGuard)
-  //   @Get(':id')
-  //   @UseGuards(LocalAuthGuard)
-  //   getById(@Param('id') id: string) {
-  //     return this.service.findById(id);
-  //   }
-  //   @UseGuards(LocalAuthGuard)
-  //   @Put(':id')
-  //   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-  //     return this.service.update(id, dto);
-  //   }
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  create(@Body() dto: CreateGroupDto, @Req() req) {
+    const userId = req.user.id;
+    return this.groupsService.create(dto, userId);
+  }
 
-  //   @UseGuards(LocalAuthGuard)
-  //   @Delete(':id')
-  //   delete(@Param('id') id: string) {
-  //     return this.service.delete(id);
-  //   }
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  findAll() {
+    return this.groupsService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.groupsService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateGroupDto) {
+    return this.groupsService.update(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.groupsService.remove(id);
+  }
 }

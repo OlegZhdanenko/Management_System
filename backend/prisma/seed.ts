@@ -1,24 +1,25 @@
-// import { PrismaClient } from "@prisma/client";
-// import * as bcrypt from "bcrypt";
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
-// const prisma = new PrismaClient();
+const prisma = new PrismaClient();
 
-// async function main() {
-//   const hashedPassword = await bcrypt.hash("admin123", 10);
+async function main() {
+  const hashedPassword = await bcrypt.hash('admin123', 10);
 
-//   await prisma.user.upsert({
-//     where: { email: "admin@example.com" },
-//     update: {},
-//     create: {
-//       email: "admin@example.com",
-//       password: hashedPassword,
-//       role: "ADMIN",
-//     },
-//   });
+  await prisma.user.upsert({
+    where: { email: 'ROOT_ADMIN@example.com' },
+    update: {},
+    create: {
+      name: 'ROOT',
+      email: 'ROOT_ADMIN@example.com',
+      password: hashedPassword,
+      role: 'ROOT_ADMIN',
+    },
+  });
 
-//   console.log("Admin seeded !");
-// }
+  console.log('ROOT_ADMIN seeded !');
+}
 
-// main()
-//   .catch(e => console.error(e))
-//   .finally(() => prisma.$disconnect());
+main()
+  .catch((e) => console.error(e))
+  .finally(() => prisma.$disconnect());
