@@ -3,8 +3,9 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLogin } from "../../hooks/useLogin";
+import { useLogin } from "../../hooks/auth/useLogin";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
@@ -19,7 +20,7 @@ export default function LoginForm() {
   });
   const mutation = useLogin();
   const [error, setError] = useState<string | null>(null);
-
+  const router = useRouter();
   const onSubmit = async (data: FormValues) => {
     setError(null);
     mutation.mutate(data, {
@@ -27,6 +28,7 @@ export default function LoginForm() {
         setError(e?.response?.data?.message || "Login failed");
       },
     });
+    router.push("/dashboard");
   };
 
   return (

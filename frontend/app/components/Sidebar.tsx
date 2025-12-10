@@ -1,7 +1,7 @@
 "use client";
-import LoginForm from "../components/auth/loginForm";
-import { useCurrentUser } from "../hooks/useCurrentUser";
-import { useLogout } from "../hooks/useLogout";
+
+import { useCurrentUser } from "../hooks/auth/useCurrentUser";
+import { useLogout } from "../hooks/auth/useLogout";
 
 import Link from "next/link";
 import { Button } from "@mui/material";
@@ -12,23 +12,23 @@ export default function Sidebar() {
   const { toggle } = useThemeToggle();
   const { data, isLoading } = useCurrentUser();
   const logout = useLogout();
-  console.log({ data });
-  console.log({ isLoading });
 
   return (
-    <aside className="w-72 p-6 border-r">
-      <h2 className="text-xl font-bold mb-4">Managment system</h2>
+    <aside className="w-72 p-6 border-r flex flex-col">
+      <h2 className="text-xl font-bold mb-4">Management system</h2>
 
       {data && (
         <nav className="flex flex-col gap-2 mb-6">
-          <Link href="/">Dashboard</Link>
-          <Link href="/groupinfo">Create group</Link>
-          <Link href="/userinfo">Create user</Link>
+          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/group">Create group</Link>
+          <Link href="/user">Create user</Link>
         </nav>
       )}
+
       <Button variant="contained" onClick={toggle} startIcon={<DarkModeIcon />}>
         Toggle Theme
       </Button>
+
       <div className="mt-auto">
         {isLoading ? (
           <div>Loading...</div>
@@ -41,7 +41,7 @@ export default function Sidebar() {
             </button>
           </div>
         ) : (
-          <LoginForm />
+          <div>Please login</div>
         )}
       </div>
     </aside>

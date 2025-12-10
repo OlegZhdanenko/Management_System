@@ -23,16 +23,32 @@ export class UserController {
     return this.service.create(dto);
   }
 
+  @Post('createAdmin')
+  createAdmin(@Body() dto: CreateUserDto) {
+    return this.service.createAdmin(dto);
+  }
   @Get()
   @UseGuards(LocalAuthGuard)
   getAll() {
     return this.service.findAll();
   }
 
+  @Get('admins')
+  getAllAdmin() {
+    return this.service.findAllAdmin();
+  }
+
   @Get(':id')
-  @UseGuards(LocalAuthGuard)
   getById(@Param('id') id: string) {
     return this.service.findById(id);
+  }
+
+  @Put('assign-admin')
+  assignAdminToGroup(
+    @Body('userId') userId: string,
+    @Body('groupId') groupId: string,
+  ) {
+    return this.service.assignAdminToGroup(userId, groupId);
   }
 
   @Put(':id')

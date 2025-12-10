@@ -73,11 +73,10 @@ export class AuthService {
       throw new UnauthorizedException('Email or password incorrect');
     }
 
-    const payload = { id: user.id, email: user.email };
+    const payload = { id: user.id, email: user.email, role: user.role };
 
     return {
       token: this.jwtService.sign(payload, { secret: 'SECRET_KEY' }),
-      user,
     };
   }
 

@@ -21,14 +21,14 @@ export class NotesService {
   async findAllByGroup(groupId: string) {
     return this.prisma.notes.findMany({
       where: { groupId },
-      include: { user: true, groups: true },
+      include: { user: true },
     });
   }
 
   async findOne(id: string) {
     const note = await this.prisma.notes.findUnique({
       where: { id },
-      include: { user: true, groups: true },
+      include: { user: true },
     });
 
     if (!note) throw new NotFoundException('Note not found');

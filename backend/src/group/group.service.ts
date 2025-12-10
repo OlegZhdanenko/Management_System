@@ -20,8 +20,8 @@ export class GroupsService {
     return this.prisma.groups.findMany({
       include: {
         notes: true,
-        user_groups_createdByTouser: true,
-        user_user_groupIdTogroups: true,
+        creator: true,
+        users: true,
       },
     });
   }
@@ -31,8 +31,6 @@ export class GroupsService {
       where: { id },
       include: {
         notes: true,
-        user_groups_createdByTouser: true,
-        user_user_groupIdTogroups: true,
       },
     });
     if (!group) throw new NotFoundException('Group not found');

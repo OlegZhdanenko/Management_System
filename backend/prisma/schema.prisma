@@ -8,41 +8,47 @@ datasource db {
 }
 
 model groups {
-  id                          String   @id @default(uuid())
-  name                        String
-  createdBy                   String
-  created_at                  DateTime @default(now())
-  user_groups_createdByTouser user     @relation("groups_createdByTouser", fields: [createdBy], references: [id])
-  notes                       notes[]
-  user_user_groupIdTogroups   user[]   @relation("user_groupIdTogroups")
+ id          String   @id @default(uuid())
+  name        String
+  createdBy   String
+  created_at  DateTime @default(now())
+  creator     user     @relation("groupsCreatedByUser", fields: [createdBy], references: [id])
+  users       user[]   @relation("UserGroups")
+  notes       notes[]
+}
+
+model user {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role
+  token     String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  groupsCreated groups[] @relation("groupsCreatedByUser")
+
+  
+  groups     groups[] @relation("UserGroups")
+
+  
+  notes      notes[]
 }
 
 model notes {
-  id         String    @id @default(uuid())
+  id         String   @id @default(uuid())
   title      String
   content    String
   groupId    String
   createdBy  String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  user       user     @relation(fields: [createdBy], references: [id])
-  groups     groups   @relation(fields: [groupId], references: [id])
+
+  user       user    @relation(fields: [createdBy], references: [id])
+  group      groups   @relation(fields: [id], references: [id])
 }
 
-model user {
-   id                           String   @id @default(uuid())
-  email                         String   @unique
-  password                      String
-  name                          String
-  role                          Role
-  groupId                       String?
-  token                         String? 
-  created_at                    DateTime @default(now())
-  updated_at                    DateTime @updatedAt
-  groups_groups_createdByTouser groups[] @relation("groups_createdByTouser")
-  notes                         notes[]
-  groups_user_groupIdTogroups   groups?  @relation("user_groupIdTogroups", fields: [groupId], references: [id])
-}
 
 enum Role {
   ROOT_ADMIN

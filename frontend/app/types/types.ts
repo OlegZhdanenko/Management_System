@@ -1,19 +1,24 @@
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
+export type Note = {
+  id: string;
+  title: string;
+  content: string;
+  groupId: string;
+  createdBy: string;
+  created_at: string;
+};
 
-export interface User {
-  id: number;
+export type User = {
+  id: string;
+  name: string;
   email: string;
-  name?: string;
-  role?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  token?: string;
-}
+  role: "ROOT_ADMIN" | "ADMIN" | "USER";
+};
 
-export interface LoginResponse {
-  token: string;
-  user: User;
-}
+export type Group = {
+  id: string;
+  name: string;
+  createdBy: string;
+  creator?: User;
+  notes?: Note[];
+  users?: User[];
+};
