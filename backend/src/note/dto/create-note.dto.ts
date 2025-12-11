@@ -10,6 +10,5 @@ export class CreateNoteDto {
   content: string;
 
   @IsString()
-  @IsNotEmpty()
-  groupId: string;
+  userId: string;
 }

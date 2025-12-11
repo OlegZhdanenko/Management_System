@@ -33,7 +33,8 @@ export class UserService {
         email: dto.email,
         password: hash,
         name: dto.name,
-        role: dto.role,
+        role: 'USER',
+        groups: { connect: { id: dto.groupId } },
       },
     });
 
@@ -78,7 +79,22 @@ export class UserService {
     }
     return users;
   }
+  async findAllUsers() {
+    const users = await this.prisma.user.findMany({
+      where: {
+        role: 'USER',
+      },
+      include: {
+        notes: true,
+        groups: true,
+      },
+    });
 
+    if (!users) {
+      throw new NotFoundException('Users not found!');
+    }
+    return users;
+  }
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
@@ -126,28 +142,30 @@ export class UserService {
       throw new NotFoundException('User or Group not found');
     }
 
-    // await this.prisma.user.update({
-    //   where: { id: userId },
-    //   data: {
-    //     groups: { connect: { id: groupId } },
-    //   },
-    // });
+    const existingAdminGroup = await this.prisma.groups.findFirst({
+      where: { createdBy: userId },
+    });
+
+    if (existingAdminGroup) {
+      await this.prisma.groups.update({
+        where: { id: existingAdminGroup.id },
+        data: {
+          createdBy: '',
+        },
+      });
+    }
+
     await this.prisma.groups.update({
       where: { id: groupId },
       data: {
         createdBy: userId,
       },
     });
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        groups: {
-          connect: { id: groupId },
-        },
-        role: 'ADMIN',
-      },
-    });
 
-    return { message: 'Admin assigned to group' };
+    return {
+      message: existingAdminGroup
+        ? `Admin transferred from group "${existingAdminGroup.name}" to "${group.name}"`
+        : `Admin assigned to group "${group.name}"`,
+    };
   }
 }

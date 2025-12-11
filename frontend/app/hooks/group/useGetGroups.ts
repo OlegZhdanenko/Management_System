@@ -18,7 +18,7 @@ export interface Group {
   creator: Creator;
 }
 
-export function useGroups() {
+export function useGetGroups() {
   return useQuery<Group[]>({
     queryKey: ["groups"],
     queryFn: async () => {

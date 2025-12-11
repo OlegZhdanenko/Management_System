@@ -7,23 +7,22 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 export class NotesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateNoteDto, userId: string) {
+  async create(dto: CreateNoteDto) {
     return this.prisma.notes.create({
       data: {
         title: dto.title,
         content: dto.content,
-        groupId: dto.groupId,
-        createdBy: userId,
+        createdBy: dto.userId,
       },
     });
   }
 
-  async findAllByGroup(groupId: string) {
-    return this.prisma.notes.findMany({
-      where: { groupId },
-      include: { user: true },
-    });
-  }
+  // async findAllByGroup(groupId: string) {
+  //   return this.prisma.notes.findMany({
+  //     where: { groupId },
+  //     include: { user: true },
+  //   });
+  // }
 
   async findOne(id: string) {
     const note = await this.prisma.notes.findUnique({

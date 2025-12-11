@@ -18,23 +18,25 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateNoteDto, @Req() req) {
-    return this.notesService.create(dto, req.user.id);
+  create(@Body() dto: CreateNoteDto) {
+    console.log({ dto });
+
+    return this.notesService.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('group/:groupId')
-  findAll(@Param('groupId') groupId: string) {
-    return this.notesService.findAllByGroup(groupId);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get('group/:groupId')
+  // findAll(@Param('groupId') groupId: string) {
+  //   return this.notesService.findAllByGroup(groupId);
+  // }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notesService.findOne(id);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.notesService.findOne(id);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')

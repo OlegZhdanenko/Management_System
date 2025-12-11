@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 export const CreateAdminSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(4, "Password must be at least 4 characters"),
 });
 
 export type CreateAdminDto = z.infer<typeof CreateAdminSchema>;

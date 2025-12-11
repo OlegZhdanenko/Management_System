@@ -1,6 +1,6 @@
 "use client";
 
-import GroupNotesTable from "../../../components/group/GroupUsersTable";
+import GroupNotesTable from "../../../components/notes/GroupNotesTable";
 
 export default function GroupNotesPage() {
   return <GroupNotesTable />;

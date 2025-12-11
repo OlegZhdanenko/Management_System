@@ -18,7 +18,7 @@ export class UserController {
   constructor(private readonly service: UserService) {}
 
   @Post()
-  @UseGuards(LocalAuthGuard)
+  // @UseGuards(LocalAuthGuard)
   create(@Body() dto: CreateUserDto) {
     return this.service.create(dto);
   }
@@ -31,6 +31,11 @@ export class UserController {
   @UseGuards(LocalAuthGuard)
   getAll() {
     return this.service.findAll();
+  }
+  @Get('all')
+  // @UseGuards(LocalAuthGuard)
+  getAllusers() {
+    return this.service.findAllUsers();
   }
 
   @Get('admins')
@@ -58,7 +63,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @UseGuards(LocalAuthGuard)
+  // @UseGuards(LocalAuthGuard)
   delete(@Param('id') id: string) {
     return this.service.delete(id);
   }

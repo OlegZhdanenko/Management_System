@@ -32,21 +32,21 @@ export class GroupsController {
     return this.groupsService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupsService.findOne(id);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.groupsService.findOne(id);
+  // }
 
-  @UseGuards(JwtAuthGuard)
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateGroupDto) {
-    return this.groupsService.update(id, dto);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Put(':id')
+  // update(@Param('id') id: string, @Body() dto: UpdateGroupDto) {
+  //   return this.groupsService.update(id, dto);
+  // }
 
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupsService.remove(id);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.groupsService.remove(id);
+  // }
 }

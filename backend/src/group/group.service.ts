@@ -19,36 +19,35 @@ export class GroupsService {
   async findAll() {
     return this.prisma.groups.findMany({
       include: {
-        notes: true,
         creator: true,
         users: true,
       },
     });
   }
 
-  async findOne(id: string) {
-    const group = await this.prisma.groups.findUnique({
-      where: { id },
-      include: {
-        notes: true,
-      },
-    });
-    if (!group) throw new NotFoundException('Group not found');
-    return group;
-  }
+  // async findOne(id: string) {
+  //   const group = await this.prisma.groups.findUnique({
+  //     where: { id },
+  //     include: {
+  //       notes: true,
+  //     },
+  //   });
+  //   if (!group) throw new NotFoundException('Group not found');
+  //   return group;
+  // }
 
-  async update(id: string, dto: UpdateGroupDto) {
-    await this.findOne(id);
-    return this.prisma.groups.update({
-      where: { id },
-      data: dto,
-    });
-  }
+  // async update(id: string, dto: UpdateGroupDto) {
+  //   await this.findOne(id);
+  //   return this.prisma.groups.update({
+  //     where: { id },
+  //     data: dto,
+  //   });
+  // }
 
-  async remove(id: string) {
-    await this.findOne(id);
-    return this.prisma.groups.delete({
-      where: { id },
-    });
-  }
+  // async remove(id: string) {
+  //   await this.findOne(id);
+  //   return this.prisma.groups.delete({
+  //     where: { id },
+  //   });
+  // }
 }

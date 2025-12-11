@@ -3,34 +3,64 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextField, Button, Paper, Typography } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Paper,
+  Typography,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
+
 import { useCreateUser } from "../../hooks/user/useCreateUser";
 
-enum Role {
-  ADMIN = "ROOT_ADMIN",
-  USER = "USER",
-}
+import { useState } from "react";
+import { useCreateGroup } from "@/app/hooks/group/useCreateGroup";
+import { useGetGroups } from "@/app/hooks/group/useGetGroups";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Min length 6"),
+  password: z.string().min(4, "Min length 4"),
   name: z.string().min(2),
-  role: Role,
+  groupId: z.string().optional(),
 });
 
 export type UserFormValues = z.infer<typeof userSchema>;
 
 export default function CreateUserForm() {
   const { enqueueSnackbar } = useSnackbar();
+
   const createUser = useCreateUser();
+  const { data: groups = [] } = useGetGroups();
+  const createGroup = useCreateGroup();
+
+  const [newGroupName, setNewGroupName] = useState("");
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<UserFormValues>({ resolver: zodResolver(userSchema) });
+
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) return;
+
+    createGroup.mutate(
+      { name: newGroupName },
+      {
+        onSuccess: (group) => {
+          enqueueSnackbar("Group created!", { variant: "success" });
+          setValue("groupId", group.id);
+          setNewGroupName("");
+        },
+      }
+    );
+  };
 
   const onSubmit = (data: UserFormValues) => {
     createUser.mutate(data, {
@@ -49,6 +79,7 @@ export default function CreateUserForm() {
       <Typography variant="h5" mb={2}>
         Create User
       </Typography>
+
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <TextField
           label="Email"
@@ -56,6 +87,7 @@ export default function CreateUserForm() {
           error={!!errors.email}
           helperText={errors.email?.message}
         />
+
         <TextField
           label="Password"
           type="password"
@@ -63,24 +95,57 @@ export default function CreateUserForm() {
           error={!!errors.password}
           helperText={errors.password?.message}
         />
+
         <TextField
           label="Name"
           {...register("name")}
           error={!!errors.name}
           helperText={errors.name?.message}
         />
-        <TextField
-          label="Role"
-          {...register("role")}
-          error={!!errors.role}
-          helperText={errors.role?.message}
-        />
+
+        {/* SELECT GROUP */}
+        <FormControl fullWidth>
+          <InputLabel>Group</InputLabel>
+          <Select label="Group" defaultValue="" {...register("groupId")}>
+            {groups.map((g) => (
+              <MenuItem key={g.id} value={g.id}>
+                {g.name}
+              </MenuItem>
+            ))}
+
+            {/* Если нет групп → кнопка создания */}
+            {groups.length === 0 && (
+              <MenuItem disabled>Нет групп — создайте ниже</MenuItem>
+            )}
+          </Select>
+        </FormControl>
+        {errors.groupId && (
+          <Typography color="error">{errors.groupId.message}</Typography>
+        )}
+
+        {/* Создание новой группы */}
+        <div className="flex gap-2">
+          <TextField
+            label="New Group Name"
+            value={newGroupName}
+            onChange={(e) => setNewGroupName(e.target.value)}
+            fullWidth
+          />
+          <Button
+            variant="contained"
+            onClick={handleCreateGroup}
+            disabled={!newGroupName.trim()}
+          >
+            Create
+          </Button>
+        </div>
+
         <Button
           type="submit"
           variant="contained"
           disabled={createUser.isPending}
         >
-          Create
+          Create User
         </Button>
       </form>
     </Paper>

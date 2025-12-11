@@ -14,7 +14,7 @@ model groups {
   created_at  DateTime @default(now())
   creator     user     @relation("groupsCreatedByUser", fields: [createdBy], references: [id])
   users       user[]   @relation("UserGroups")
-  notes       notes[]
+ 
 }
 
 model user {
@@ -26,13 +26,8 @@ model user {
   token     String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
   groupsCreated groups[] @relation("groupsCreatedByUser")
-
-  
   groups     groups[] @relation("UserGroups")
-
-  
   notes      notes[]
 }
 
@@ -40,13 +35,11 @@ model notes {
   id         String   @id @default(uuid())
   title      String
   content    String
-  groupId    String
   createdBy  String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
   user       user    @relation(fields: [createdBy], references: [id])
-  group      groups   @relation(fields: [id], references: [id])
+
 }
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroups } from "@/app/hooks/group/useGetGroup";
+import { useGetGroups } from "@/app/hooks/group/useGetGroups";
 import { useGetAdmins } from "@/app/hooks/user/useGetAdmin";
 import { useAssignAdmin } from "@/app/hooks/user/useAssignAdmin";
 import { useCreateAdmin } from "@/app/hooks/user/useCreateAdmin";
@@ -28,7 +28,7 @@ import AssignAdminModal from "../../components/group/AssignAdminModal";
 import { useState } from "react";
 
 export default function GroupsTable() {
-  const { data: groups, isLoading } = useGroups();
+  const { data: groups, isLoading } = useGetGroups();
   const { data: admins } = useGetAdmins();
 
   const assignAdminMutation = useAssignAdmin();
