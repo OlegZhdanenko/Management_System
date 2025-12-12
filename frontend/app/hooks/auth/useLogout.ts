@@ -1,20 +1,20 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { AuthService } from "../../services/auth.service";
 import { useRouter } from "next/navigation";
+import { api } from "../../lib/axios";
 
 export const useLogout = () => {
   const qc = useQueryClient();
   const router = useRouter();
+
   const logout = async () => {
     try {
-      await AuthService.logout();
+      await api.post("/auth/logout");
     } catch (err) {
       console.log(err);
     }
 
     localStorage.removeItem("token");
-
-    qc.setQueryData(["currentUser"], null);
+    qc.clear();
     router.push("/");
   };
 

@@ -86,7 +86,11 @@ export class UserService {
       },
       include: {
         notes: true,
-        groups: true,
+        groups: {
+          include: {
+            creator: true,
+          },
+        },
       },
     });
 
@@ -150,7 +154,7 @@ export class UserService {
       await this.prisma.groups.update({
         where: { id: existingAdminGroup.id },
         data: {
-          createdBy: '',
+          createdBy: 'Please choose or create admin ',
         },
       });
     }

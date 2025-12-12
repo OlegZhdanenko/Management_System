@@ -2,16 +2,19 @@
 
 import { useCurrentUser } from "../hooks/auth/useCurrentUser";
 import { useLogout } from "../hooks/auth/useLogout";
-
 import Link from "next/link";
-import { Button } from "@mui/material";
-import { useThemeToggle } from "@/app/providers/theme-provider";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
+import { useState } from "react";
+import { getRoleFromToken } from "../lib/getRoleFromToken";
 
 export default function Sidebar() {
-  const { toggle } = useThemeToggle();
   const { data, isLoading } = useCurrentUser();
   const logout = useLogout();
+
+  const [tokenDecode] = useState(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return getRoleFromToken(token);
+  });
 
   return (
     <aside className="w-72 p-6 border-r flex flex-col">
@@ -20,14 +23,12 @@ export default function Sidebar() {
       {data && (
         <nav className="flex flex-col gap-2 mb-6">
           <Link href="/dashboard">Dashboard</Link>
-          <Link href="/group">Create group</Link>
+          {tokenDecode?.role === "ROOT_ADMIN" && (
+            <Link href="/group">Create group</Link>
+          )}
           <Link href="/user">Create user</Link>
         </nav>
       )}
-
-      <Button variant="contained" onClick={toggle} startIcon={<DarkModeIcon />}>
-        Toggle Theme
-      </Button>
 
       <div className="mt-auto">
         {isLoading ? (

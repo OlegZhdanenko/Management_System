@@ -2,11 +2,11 @@ import { jwtDecode } from "jwt-decode";
 
 interface TokenPayload {
   role?: string;
-  exp?: number;
-  iat?: number;
+  email?: string;
+  id?: string;
 }
 
-export function getRoleFromToken(token: string | null): string | null {
+export function getRoleFromToken(token: string | null): TokenPayload | null {
   if (!token || typeof token !== "string") return null;
 
   try {
@@ -14,7 +14,7 @@ export function getRoleFromToken(token: string | null): string | null {
 
     if (!decoded || typeof decoded !== "object") return null;
 
-    return decoded.role ?? null;
+    return decoded ?? null;
   } catch (error) {
     console.error("Invalid token:", error);
     return null;

@@ -13,10 +13,31 @@ import { useGetUsers } from "../../hooks/user/useGetUsers";
 import { useState } from "react";
 import NotesModal from "./NotesModal";
 import EditIcon from "@mui/icons-material/Edit";
+import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
 
 export default function GroupNotesTable() {
   const { data: users, isLoading } = useGetUsers();
   const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const [tokenDecode] = useState(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return getRoleFromToken(token);
+  });
+
+  let filteredUsers = users || [];
+
+  if (tokenDecode?.role === "USER") {
+    filteredUsers = filteredUsers.filter((u) => u.id === tokenDecode.id);
+  } else if (tokenDecode?.role === "ADMIN") {
+    filteredUsers = filteredUsers.filter((u) =>
+      u.groups?.some((g: any) => g.creator?.id === tokenDecode.id)
+    );
+  }
+  console.log({ tokenDecode });
+  console.log({ users });
+
+  console.log({ filteredUsers });
 
   if (isLoading)
     return (
@@ -34,12 +55,12 @@ export default function GroupNotesTable() {
           <TableRow>
             <TableCell>User</TableCell>
             <TableCell>Notes</TableCell>
-            <TableCell>Actions</TableCell>
+            {tokenDecode?.role === "ADMIN" && <TableCell>Actions</TableCell>}
           </TableRow>
         </TableHead>
 
         <TableBody>
-          {users?.map((user) => (
+          {filteredUsers.map((user) => (
             <TableRow key={user.id}>
               <TableCell>
                 {user.name ?? "—"} ({user.email ?? "—"})
@@ -51,8 +72,8 @@ export default function GroupNotesTable() {
                     {user.notes?.length ? (
                       user.notes.map((note) => (
                         <TableRow key={note.id}>
-                          <TableCell>{`Title : ${note.title ?? "—"}`}</TableCell>
-                          <TableCell>{`Content : ${note.content ?? "—"}`}</TableCell>
+                          <TableCell>{`Title: ${note.title ?? "—"}`}</TableCell>
+                          <TableCell>{`Content: ${note.content ?? "—"}`}</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -64,11 +85,14 @@ export default function GroupNotesTable() {
                 </Table>
               </TableCell>
 
-              <TableCell>
-                <IconButton onClick={() => setSelectedUser(user)}>
-                  <EditIcon />
-                </IconButton>
-              </TableCell>
+              {(tokenDecode?.role === "ROOT_ADMIN" ||
+                tokenDecode?.role === "ADMIN") && (
+                <TableCell>
+                  <IconButton onClick={() => setSelectedUser(user)}>
+                    <EditIcon />
+                  </IconButton>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

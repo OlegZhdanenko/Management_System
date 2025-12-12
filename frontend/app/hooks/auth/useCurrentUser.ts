@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { AuthService } from "../../services/auth.service";
+import { api } from "../../lib/axios";
 
 export const useCurrentUser = () =>
   useQuery({
     queryKey: ["currentUser"],
-    queryFn: AuthService.me,
+    queryFn: async () => {
+      const { data } = await api.get("/auth/me");
+      return data;
+    },
     retry: false,
   });

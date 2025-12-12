@@ -10,9 +10,9 @@ datasource db {
 model groups {
  id          String   @id @default(uuid())
   name        String
-  createdBy   String
+  createdBy   String?
   created_at  DateTime @default(now())
-  creator     user     @relation("groupsCreatedByUser", fields: [createdBy], references: [id])
+  creator     user ?    @relation("groupsCreatedByUser", fields: [createdBy], references: [id])
   users       user[]   @relation("UserGroups")
  
 }

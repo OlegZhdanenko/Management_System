@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../lib/axios";
+import { Group } from "../group/useGetGroups";
 
 export interface Notes {
   id: string;
@@ -18,6 +19,7 @@ export interface User {
   token: string | null;
   updated_at: string;
   notes?: Notes[];
+  groups?: Group;
 }
 
 export function useGetUsers() {

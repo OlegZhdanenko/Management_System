@@ -20,6 +20,7 @@ import { useCreateUser } from "../../hooks/user/useCreateUser";
 import { useState } from "react";
 import { useCreateGroup } from "@/app/hooks/group/useCreateGroup";
 import { useGetGroups } from "@/app/hooks/group/useGetGroups";
+import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -39,6 +40,15 @@ export default function CreateUserForm() {
 
   const [newGroupName, setNewGroupName] = useState("");
 
+  const [tokenDecode] = useState(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return getRoleFromToken(token);
+  });
+  const currentGroupId = groups.find(
+    (group) => group.creator.id === tokenDecode?.id
+  );
+
   const {
     register,
     handleSubmit,
@@ -55,7 +65,9 @@ export default function CreateUserForm() {
       {
         onSuccess: (group) => {
           enqueueSnackbar("Group created!", { variant: "success" });
-          setValue("groupId", group.id);
+          {
+            setValue("groupId", group.id);
+          }
           setNewGroupName("");
         },
       }
@@ -63,6 +75,9 @@ export default function CreateUserForm() {
   };
 
   const onSubmit = (data: UserFormValues) => {
+    if (tokenDecode?.role === "ADMIN") {
+      data.groupId = currentGroupId?.id ?? undefined;
+    }
     createUser.mutate(data, {
       onSuccess: () => {
         enqueueSnackbar("User created successfully!", { variant: "success" });
@@ -103,42 +118,45 @@ export default function CreateUserForm() {
           helperText={errors.name?.message}
         />
 
-        {/* SELECT GROUP */}
-        <FormControl fullWidth>
-          <InputLabel>Group</InputLabel>
-          <Select label="Group" defaultValue="" {...register("groupId")}>
-            {groups.map((g) => (
-              <MenuItem key={g.id} value={g.id}>
-                {g.name}
-              </MenuItem>
-            ))}
+        {tokenDecode?.role === "ROOT_ADMIN" && (
+          <>
+            <FormControl fullWidth>
+              <InputLabel>Group</InputLabel>
+              <Select label="Group" defaultValue="" {...register("groupId")}>
+                {groups.map((g) => (
+                  <MenuItem key={g.id} value={g.id}>
+                    {g.name}
+                  </MenuItem>
+                ))}
 
-            {/* Если нет групп → кнопка создания */}
-            {groups.length === 0 && (
-              <MenuItem disabled>Нет групп — создайте ниже</MenuItem>
+                {groups.length === 0 && (
+                  <MenuItem disabled>Нет групп — создайте ниже</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+
+            {errors.groupId && (
+              <Typography color="error">{errors.groupId.message}</Typography>
             )}
-          </Select>
-        </FormControl>
-        {errors.groupId && (
-          <Typography color="error">{errors.groupId.message}</Typography>
-        )}
 
-        {/* Создание новой группы */}
-        <div className="flex gap-2">
-          <TextField
-            label="New Group Name"
-            value={newGroupName}
-            onChange={(e) => setNewGroupName(e.target.value)}
-            fullWidth
-          />
-          <Button
-            variant="contained"
-            onClick={handleCreateGroup}
-            disabled={!newGroupName.trim()}
-          >
-            Create
-          </Button>
-        </div>
+            <div className="flex gap-2">
+              <TextField
+                label="New Group Name"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                fullWidth
+              />
+
+              <Button
+                variant="contained"
+                onClick={handleCreateGroup}
+                disabled={!newGroupName.trim()}
+              >
+                Create
+              </Button>
+            </div>
+          </>
+        )}
 
         <Button
           type="submit"

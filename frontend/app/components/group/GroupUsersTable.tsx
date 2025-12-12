@@ -17,10 +17,20 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useState } from "react";
 import DeleteUserModal from "../../components/user/DeleteUserModal";
 import { useDeleteUser } from "@/app/hooks/user/useDeleteUser";
+import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
 
 export default function GroupUsersTable() {
   const { data: groups, isLoading } = useGetGroups();
   const deleteUserMutation = useDeleteUser();
+  const [tokenDecode] = useState(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    return getRoleFromToken(token);
+  });
+
+  const currentGroup = groups?.find(
+    (group) => group.creator.id === tokenDecode?.id
+  );
 
   const [deleteUser, setDeleteUser] = useState<{
     id: string;
@@ -46,6 +56,9 @@ export default function GroupUsersTable() {
       </div>
     );
 
+  const groupsToRender =
+    tokenDecode?.role === "ADMIN" && currentGroup ? [currentGroup] : groups;
+
   return (
     <Paper className="p-4">
       <h2 className="text-xl mb-4">Group and Users</h2>
@@ -60,7 +73,7 @@ export default function GroupUsersTable() {
         </TableHead>
 
         <TableBody>
-          {groups?.map((group: any) => (
+          {groupsToRender?.map((group: any) => (
             <TableRow key={group.id}>
               <TableCell>{group.name}</TableCell>
               <TableCell>{group.creator.name}</TableCell>
@@ -76,7 +89,10 @@ export default function GroupUsersTable() {
                           <TableCell>
                             <IconButton
                               onClick={() =>
-                                setDeleteUser({ id: user.id, name: user.name })
+                                setDeleteUser({
+                                  id: user.id,
+                                  name: user.name,
+                                })
                               }
                             >
                               <DeleteIcon />
