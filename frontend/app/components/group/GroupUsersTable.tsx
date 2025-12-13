@@ -76,7 +76,7 @@ export default function GroupUsersTable() {
           {groupsToRender?.map((group: any) => (
             <TableRow key={group.id}>
               <TableCell>{group.name}</TableCell>
-              <TableCell>{group.creator.name}</TableCell>
+              <TableCell>{group.creator?.name || "—"}</TableCell>
               <TableCell>
                 {group.users?.length ? (
                   <Table>

@@ -17,7 +17,9 @@ import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
 
 export default function GroupNotesTable() {
   const { data: users, isLoading } = useGetUsers();
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  const selectedUser = users?.find((u) => u.id === selectedUserId) ?? null;
 
   const [tokenDecode] = useState(() => {
     const token =
@@ -88,7 +90,7 @@ export default function GroupNotesTable() {
               {(tokenDecode?.role === "ROOT_ADMIN" ||
                 tokenDecode?.role === "ADMIN") && (
                 <TableCell>
-                  <IconButton onClick={() => setSelectedUser(user)}>
+                  <IconButton onClick={() => setSelectedUserId(user.id)}>
                     <EditIcon />
                   </IconButton>
                 </TableCell>
@@ -101,7 +103,7 @@ export default function GroupNotesTable() {
       {selectedUser && (
         <NotesModal
           open={!!selectedUser}
-          onClose={() => setSelectedUser(null)}
+          onClose={() => setSelectedUserId(null)}
           user={selectedUser}
         />
       )}

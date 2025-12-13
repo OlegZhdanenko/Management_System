@@ -26,6 +26,7 @@ export class UserService {
     if (exists) {
       throw new ConflictException('User with this email already exists');
     }
+
     const hash = await bcrypt.hash(dto.password, 10);
 
     const user = await this.prisma.user.create({
@@ -34,13 +35,18 @@ export class UserService {
         password: hash,
         name: dto.name,
         role: 'USER',
-        groups: { connect: { id: dto.groupId } },
+        groups: dto.groupId
+          ? {
+              connect: [{ id: dto.groupId }],
+            }
+          : undefined,
       },
     });
 
-    return user;
+    return this.toReadUser(user);
   }
-  async createAdmin(dto: CreateUserDto, id?: string) {
+
+  async createAdmin(dto: CreateUserDto, groupId?: string) {
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -57,7 +63,11 @@ export class UserService {
         password: hash,
         name: dto.name,
         role: 'ADMIN',
-        groups: id ? { connect: { id } } : undefined,
+        groups: groupId
+          ? {
+              connect: [{ id: groupId }],
+            }
+          : undefined,
       },
     });
 
