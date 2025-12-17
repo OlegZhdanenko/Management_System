@@ -23,6 +23,7 @@ import { useUpdateNote } from "@/app/hooks/notes/useUpdateNotes";
 import { useDeleteNote } from "@/app/hooks/notes/useDeleteNotes";
 import z from "zod";
 import { Note, User } from "@/app/types/types";
+import { queryClient } from "@/app/services/react-query";
 
 interface NotesModalProps {
   open: boolean;
@@ -62,6 +63,9 @@ export default function NotesModal({ open, onClose, user }: NotesModalProps) {
       {
         onSuccess: () => {
           enqueueSnackbar("Note created", { variant: "success" });
+          queryClient.invalidateQueries({
+            queryKey: ["users"],
+          });
           reset();
           onClose();
         },
@@ -72,15 +76,11 @@ export default function NotesModal({ open, onClose, user }: NotesModalProps) {
     );
   };
 
-  const handleUpdate = (
-    note: Note,
-    field: "title" | "content",
-    value: string
-  ) => {
+  const handleUpdate = (note: Note) => {
     updateNote.mutate(
       {
         id: note.id,
-        note: { [field]: value },
+        note: { title: note.title, content: note.content },
       },
       {
         onSuccess: () => {
@@ -148,9 +148,7 @@ export default function NotesModal({ open, onClose, user }: NotesModalProps) {
                     <TextField
                       defaultValue={note.title}
                       fullWidth
-                      onBlur={(e) =>
-                        handleUpdate(note, "title", e.target.value)
-                      }
+                      onBlur={() => handleUpdate(note)}
                     />
                   </TableCell>
 
@@ -160,7 +158,7 @@ export default function NotesModal({ open, onClose, user }: NotesModalProps) {
                       fullWidth
                       multiline
                       onBlur={(e) =>
-                        handleUpdate(note, "content", e.target.value)
+                        handleUpdate({ ...note, title: e.target.value })
                       }
                     />
                   </TableCell>

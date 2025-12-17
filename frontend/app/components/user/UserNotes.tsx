@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { Note } from "@/types";
+
+import { Note } from "../../types/types";
 import { Paper, Typography } from "@mui/material";
 
 export default function UserNotes({ notes }: { notes?: Note[] }) {

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { TextField, Button, Paper, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useCreateGroup } from "../../hooks/group/useCreateGroup";
+import { useRouter } from "next/navigation";
 
 const groupSchema = z.object({
   name: z.string().min(3, "Group name is required"),
@@ -16,6 +17,7 @@ export type GroupFormValues = z.infer<typeof groupSchema>;
 export default function CreateGroupForm() {
   const { enqueueSnackbar } = useSnackbar();
   const createGroup = useCreateGroup();
+  const router = useRouter();
 
   const {
     register,
@@ -29,6 +31,7 @@ export default function CreateGroupForm() {
       onSuccess: () => {
         enqueueSnackbar("Group created successfully!", { variant: "success" });
         reset();
+        router.push("/dashboard");
       },
       onError: () => {
         enqueueSnackbar("Failed to create group", { variant: "error" });

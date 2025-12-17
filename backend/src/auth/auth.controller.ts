@@ -9,7 +9,9 @@ import {
   Get,
   Headers,
   UnauthorizedException,
+  Req,
 } from '@nestjs/common';
+import { STATUS_CODES } from 'node:http';
 import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto.ts/register.dto.js';
 import { LoginDto } from './dto.ts/login.dto.js';
@@ -40,23 +42,21 @@ export class AuthController {
     return this.authService.logout(payload.email);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Headers('authorization') authHeader?: string) {
-    if (!authHeader) {
-      throw new UnauthorizedException('Authorization header missing');
+  async me(@Req() req: any) {
+    const email = req.user.email;
+    try {
+      const user = await this.authService.getUserByEmail(email);
+      return {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        email: user.email,
+      };
+      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    } catch (error) {
+      throw new UnauthorizedException(STATUS_CODES[401]);
     }
-
-    const [type, token] = authHeader.split(' ');
-
-    if (type !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Invalid authorization header');
-    }
-
-    const payload = this.authService.verifyToken(token);
-    if (!payload) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    return this.authService.getUserByEmail(payload.email);
   }
 }

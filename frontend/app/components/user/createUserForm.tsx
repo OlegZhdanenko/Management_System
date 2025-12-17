@@ -16,11 +16,12 @@ import {
 import { useSnackbar } from "notistack";
 
 import { useCreateUser } from "../../hooks/user/useCreateUser";
-
 import { useState } from "react";
 import { useCreateGroup } from "@/app/hooks/group/useCreateGroup";
 import { useGetGroups } from "@/app/hooks/group/useGetGroups";
-import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
+
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/app/hooks/auth/useCurrentUser";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -33,22 +34,17 @@ export type UserFormValues = z.infer<typeof userSchema>;
 
 export default function CreateUserForm() {
   const { enqueueSnackbar } = useSnackbar();
-
+  const { data: currentUser } = useCurrentUser();
   const createUser = useCreateUser();
   const { data: groups = [] } = useGetGroups();
   const createGroup = useCreateGroup();
 
   const [newGroupName, setNewGroupName] = useState("");
 
-  const [tokenDecode] = useState(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    return getRoleFromToken(token);
-  });
   const currentGroupId = groups.find(
-    (group) => group.creator.id === tokenDecode?.id
+    (group) => group.creator.id === currentUser?.id
   );
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -75,13 +71,14 @@ export default function CreateUserForm() {
   };
 
   const onSubmit = (data: UserFormValues) => {
-    if (tokenDecode?.role === "ADMIN") {
+    if (currentUser?.role === "ADMIN") {
       data.groupId = currentGroupId?.id ?? undefined;
     }
     createUser.mutate(data, {
       onSuccess: () => {
         enqueueSnackbar("User created successfully!", { variant: "success" });
         reset();
+        router.push("/dashboard");
       },
       onError: () => {
         enqueueSnackbar("Failed to create user", { variant: "error" });
@@ -118,7 +115,7 @@ export default function CreateUserForm() {
           helperText={errors.name?.message}
         />
 
-        {tokenDecode?.role === "ROOT_ADMIN" && (
+        {currentUser?.role === "ROOT_ADMIN" && (
           <>
             <FormControl fullWidth>
               <InputLabel>Group</InputLabel>

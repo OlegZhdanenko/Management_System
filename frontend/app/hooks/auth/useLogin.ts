@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "../../lib/axios";
+import { useRouter } from "next/navigation";
 
 export const useLogin = () => {
   const qc = useQueryClient();
-
+  const router = useRouter();
   return useMutation<LoginResponse, Error, LoginPayload>({
     mutationFn: async (payload: LoginPayload) => {
       const { data } = await api.post("/auth/login", payload);
@@ -19,6 +20,7 @@ export const useLogin = () => {
       qc.invalidateQueries({
         queryKey: ["currentUser"],
       });
+      router.push("/dashboard");
     },
   });
 };

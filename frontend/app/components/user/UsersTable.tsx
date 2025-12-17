@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { User } from "@/types";
+
+import { User } from "../../types/types";
 import {
   Paper,
   Table,

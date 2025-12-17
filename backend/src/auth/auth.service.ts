@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -26,7 +27,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Email or password incorrecttttttt');
+      throw new UnauthorizedException('Email or password incorrect');
     }
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -64,7 +65,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Email or password incorrectttttt');
+      throw new UnauthorizedException('Email or password incorrect');
     }
 
     const isValid = await bcrypt.compare(dto.password, user.password);
@@ -91,6 +92,9 @@ export class AuthService {
 
   async getUserByEmail(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email: email } });
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
     return user;
   }
 }

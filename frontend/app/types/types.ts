@@ -12,6 +12,7 @@ export type User = {
   name: string;
   email: string;
   role: "ROOT_ADMIN" | "ADMIN" | "USER";
+  notes?: Note[];
 };
 
 export type Group = {

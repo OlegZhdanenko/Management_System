@@ -8,5 +8,6 @@ export const useCurrentUser = () =>
       const { data } = await api.get("/auth/me");
       return data;
     },
+    enabled: typeof window !== "undefined" && !!localStorage.getItem("token"),
     retry: false,
   });

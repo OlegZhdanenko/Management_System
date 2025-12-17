@@ -5,7 +5,7 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 
 @Injectable()
 export class NotesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateNoteDto) {
     return this.prisma.notes.create({
@@ -17,20 +17,16 @@ export class NotesService {
     });
   }
 
-  // async findAllByGroup(groupId: string) {
-  //   return this.prisma.notes.findMany({
-  //     where: { groupId },
-  //     include: { user: true },
-  //   });
-  // }
-
   async findOne(id: string) {
     const note = await this.prisma.notes.findUnique({
       where: { id },
       include: { user: true },
     });
 
-    if (!note) throw new NotFoundException('Note not found');
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
     return note;
   }
 

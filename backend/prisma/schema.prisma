@@ -8,7 +8,7 @@ datasource db {
 }
 
 model groups {
- id          String   @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   createdBy   String?
   created_at  DateTime @default(now())
@@ -38,7 +38,7 @@ model notes {
   createdBy  String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  user       user    @relation(fields: [createdBy], references: [id])
+  user       user    @relation(fields: [createdBy], references: [id],onDelete: Cascade)
 
 }
 

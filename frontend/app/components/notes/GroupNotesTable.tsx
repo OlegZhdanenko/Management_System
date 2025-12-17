@@ -13,33 +13,24 @@ import { useGetUsers } from "../../hooks/user/useGetUsers";
 import { useState } from "react";
 import NotesModal from "./NotesModal";
 import EditIcon from "@mui/icons-material/Edit";
-import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
+
+import { useCurrentUser } from "@/app/hooks/auth/useCurrentUser";
 
 export default function GroupNotesTable() {
   const { data: users, isLoading } = useGetUsers();
+  const { data: currentUser } = useCurrentUser();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
   const selectedUser = users?.find((u) => u.id === selectedUserId) ?? null;
-
-  const [tokenDecode] = useState(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    return getRoleFromToken(token);
-  });
 
   let filteredUsers = users || [];
 
-  if (tokenDecode?.role === "USER") {
-    filteredUsers = filteredUsers.filter((u) => u.id === tokenDecode.id);
-  } else if (tokenDecode?.role === "ADMIN") {
+  if (currentUser?.role === "USER") {
+    filteredUsers = filteredUsers.filter((u) => u.id === currentUser.id);
+  } else if (currentUser?.role === "ADMIN") {
     filteredUsers = filteredUsers.filter((u) =>
-      u.groups?.some((g: any) => g.creator?.id === tokenDecode.id)
+      u.groups?.some((g: any) => g.creator?.id === currentUser.id)
     );
   }
-  console.log({ tokenDecode });
-  console.log({ users });
-
-  console.log({ filteredUsers });
 
   if (isLoading)
     return (
@@ -57,7 +48,7 @@ export default function GroupNotesTable() {
           <TableRow>
             <TableCell>User</TableCell>
             <TableCell>Notes</TableCell>
-            {tokenDecode?.role === "ADMIN" && <TableCell>Actions</TableCell>}
+            {currentUser?.role !== "ADMIN" && <TableCell>Actions</TableCell>}
           </TableRow>
         </TableHead>
 
@@ -87,8 +78,7 @@ export default function GroupNotesTable() {
                 </Table>
               </TableCell>
 
-              {(tokenDecode?.role === "ROOT_ADMIN" ||
-                tokenDecode?.role === "ADMIN") && (
+              {currentUser?.role === "ADMIN" || (
                 <TableCell>
                   <IconButton onClick={() => setSelectedUserId(user.id)}>
                     <EditIcon />

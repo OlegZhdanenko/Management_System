@@ -23,7 +23,9 @@ export function useGetGroups() {
     queryKey: ["groups"],
     queryFn: async () => {
       const { data } = await api.get("/groups");
+      
       return data;
     },
+    
   });
 }

@@ -7,9 +7,17 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { GroupModule } from './group/group.module';
 import { NotesModule } from './note/note.module';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
-  imports: [PrismaModule, UserModule, AuthModule, GroupModule, NotesModule],
+  imports: [
+    PrismaModule,
+    UserModule,
+    AuthModule,
+    GroupModule,
+    NotesModule,
+    CaslModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

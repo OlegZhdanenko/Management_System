@@ -2,68 +2,57 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Param,
   Post,
   Put,
   UseGuards,
+  Req,
+  Get,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create.user.dto';
-import { UpdateUserDto } from './dto/update.user.dto';
-import { LocalAuthGuard } from 'src/auth/local-auth.guard';
+
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CaslGuard } from 'src/casl/casl.guard';
+
+import { CheckAbilities } from 'src/casl/decorators';
+import { Action } from 'src/casl/casl.types';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard, CaslGuard)
 export class UserController {
   constructor(private readonly service: UserService) {}
 
   @Post()
-  // @UseGuards(LocalAuthGuard)
-  create(@Body() dto: CreateUserDto) {
-    return this.service.create(dto);
-  }
-
-  @Post('createAdmin')
-  createAdmin(@Body() dto: CreateUserDto) {
-    return this.service.createAdmin(dto);
-  }
-  @Get()
-  @UseGuards(LocalAuthGuard)
-  getAll() {
-    return this.service.findAll();
+  @CheckAbilities({ action: Action.Create, subject: 'user' })
+  create(@Body() dto: CreateUserDto, @Req() req) {
+    return this.service.create(dto, req.user);
   }
   @Get('all')
-  // @UseGuards(LocalAuthGuard)
+  @CheckAbilities({ action: Action.Read, subject: 'user' })
   getAllusers() {
     return this.service.findAllUsers();
   }
-
   @Get('admins')
+  @CheckAbilities({ action: Action.Read, subject: 'user' })
   getAllAdmin() {
     return this.service.findAllAdmin();
   }
 
-  @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.service.findById(id);
+  @Post('createAdmin')
+  @CheckAbilities({ action: Action.Manage, subject: 'user' })
+  createAdmin(@Body() dto: CreateUserDto) {
+    return this.service.createAdmin(dto);
   }
 
   @Put('assign-admin')
-  assignAdminToGroup(
-    @Body('userId') userId: string,
-    @Body('groupId') groupId: string,
-  ) {
-    return this.service.assignAdminToGroup(userId, groupId);
-  }
-
-  @Put(':id')
-  @UseGuards(LocalAuthGuard)
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.service.update(id, dto);
+  @CheckAbilities({ action: Action.Manage, subject: 'user' })
+  assignAdmin(@Body() body) {
+    return this.service.assignAdminToGroup(body.userId, body.groupId);
   }
 
   @Delete(':id')
-  // @UseGuards(LocalAuthGuard)
+  @CheckAbilities({ action: Action.Delete, subject: 'user' })
   delete(@Param('id') id: string) {
     return this.service.delete(id);
   }

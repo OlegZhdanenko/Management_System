@@ -1,48 +1,48 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useCurrentUser } from "../hooks/auth/useCurrentUser";
 import { useLogout } from "../hooks/auth/useLogout";
 import Link from "next/link";
-import { useState } from "react";
-import { getRoleFromToken } from "../lib/getRoleFromToken";
 
 export default function Sidebar() {
-  const { data, isLoading } = useCurrentUser();
+  const { data: currentUser, isLoading } = useCurrentUser();
+  const [mounted, setMounted] = useState(false);
   const logout = useLogout();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const [tokenDecode] = useState(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    return getRoleFromToken(token);
-  });
-
+  if (!mounted) return null;
   return (
     <aside className="w-72 p-6 border-r flex flex-col">
       <h2 className="text-xl font-bold mb-4">Management system</h2>
 
-      {data && (
+      {currentUser && (
         <nav className="flex flex-col gap-2 mb-6">
           <Link href="/dashboard">Dashboard</Link>
-          {tokenDecode?.role === "ROOT_ADMIN" && (
+          {currentUser?.role === "ROOT_ADMIN" && (
             <Link href="/group">Create group</Link>
           )}
-          <Link href="/user">Create user</Link>
+          {currentUser?.role === "USER" || (
+            <Link href="/user">Create user</Link>
+          )}
         </nav>
       )}
 
       <div className="mt-auto">
         {isLoading ? (
           <div>Loading...</div>
-        ) : data ? (
+        ) : currentUser ? (
           <div className="flex flex-col gap-2">
             <div className="text-sm">Signed in as</div>
-            <div className="font-medium">{data.email}</div>
+            <div className="font-medium">{currentUser.email}</div>
             <button className="mt-2 bg-red-500 text-white p-2" onClick={logout}>
               Logout
             </button>
           </div>
         ) : (
-          <div>Please login</div>
+          <Link href={"/"}>Please login</Link>
         )}
       </div>
     </aside>

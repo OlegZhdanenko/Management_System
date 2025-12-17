@@ -1,26 +1,32 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma.service';
-import { UpdateUserDto } from './dto/update.user.dto';
 import { CreateUserDto } from './dto/create.user.dto';
+import { user as UserModel } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private toReadUser(users: any) {
-    const { password, ...rest } = users;
+  private toReadUser(user: UserModel) {
+    const { password, ...rest } = user;
     return rest;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, currentUser: UserModel) {
+    if (currentUser.role === 'USER') {
+      throw new ForbiddenException('ADMIN must assign groupppp');
+    }
+
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include: { groups: true },
     });
 
     if (exists) {
@@ -35,11 +41,7 @@ export class UserService {
         password: hash,
         name: dto.name,
         role: 'USER',
-        groups: dto.groupId
-          ? {
-              connect: [{ id: dto.groupId }],
-            }
-          : undefined,
+        groups: dto.groupId ? { connect: [{ id: dto.groupId }] } : undefined,
       },
     });
 
@@ -47,14 +49,6 @@ export class UserService {
   }
 
   async createAdmin(dto: CreateUserDto, groupId?: string) {
-    const exists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (exists) {
-      throw new ConflictException('User with this email already exists');
-    }
-
     const hash = await bcrypt.hash(dto.password, 10);
 
     const user = await this.prisma.user.create({
@@ -63,24 +57,39 @@ export class UserService {
         password: hash,
         name: dto.name,
         role: 'ADMIN',
-        groups: groupId
-          ? {
-              connect: [{ id: groupId }],
-            }
-          : undefined,
+        groups: groupId ? { connect: [{ id: groupId }] } : undefined,
       },
     });
 
     return this.toReadUser(user);
   }
 
-  async findAllAdmin() {
-    const users = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
+  async delete(id: string) {
+    await this.prisma.user.findUniqueOrThrow({ where: { id } });
+    return this.prisma.user.delete({ where: { id } });
+  }
 
-    if (!users) {
-      throw new NotFoundException('Admins not found!');
+  async assignAdminToGroup(userId: string, groupId: string) {
+    const existing = await this.prisma.groups.findFirst({
+      where: { createdBy: userId },
+    });
+
+    if (existing) {
+      const ROOTADMIN = await this.prisma.user.findUnique({
+        where: { email: 'ROOT_ADMIN@example.com' },
+      });
+      await this.prisma.groups.update({
+        where: { id: existing.id },
+        data: { createdBy: ROOTADMIN!.id },
+      });
     }
-    return users;
+
+    await this.prisma.groups.update({
+      where: { id: groupId },
+      data: { createdBy: userId },
+    });
+
+    return { message: 'Admin reassigned' };
   }
   async findAll() {
     const users = await this.prisma.user.findMany();
@@ -109,77 +118,12 @@ export class UserService {
     }
     return users;
   }
-  async findById(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+  async findAllAdmin() {
+    const users = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
 
-    if (!user) {
-      throw new NotFoundException('User not found!');
+    if (!users) {
+      throw new NotFoundException('Admins not found!');
     }
-
-    return user;
-  }
-
-  async update(id: string, dto: UpdateUserDto) {
-    await this.findById(id);
-
-    const data: any = { ...dto };
-
-    if (dto.password) {
-      data.password = await bcrypt.hash(dto.password, 10);
-    }
-
-    const updated = await this.prisma.user.update({
-      where: { id },
-      data,
-    });
-
-    return this.toReadUser(updated);
-  }
-
-  async delete(id: string) {
-    await this.findById(id);
-
-    return this.prisma.user.delete({ where: { id } });
-  }
-
-  async findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
-  }
-
-  async assignAdminToGroup(userId: string, groupId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    const group = await this.prisma.groups.findUnique({
-      where: { id: groupId },
-    });
-
-    if (!user || !group) {
-      throw new NotFoundException('User or Group not found');
-    }
-
-    const existingAdminGroup = await this.prisma.groups.findFirst({
-      where: { createdBy: userId },
-    });
-
-    if (existingAdminGroup) {
-      await this.prisma.groups.update({
-        where: { id: existingAdminGroup.id },
-        data: {
-          createdBy: 'Please choose or create admin ',
-        },
-      });
-    }
-
-    await this.prisma.groups.update({
-      where: { id: groupId },
-      data: {
-        createdBy: userId,
-      },
-    });
-
-    return {
-      message: existingAdminGroup
-        ? `Admin transferred from group "${existingAdminGroup.name}" to "${group.name}"`
-        : `Admin assigned to group "${group.name}"`,
-    };
+    return users;
   }
 }

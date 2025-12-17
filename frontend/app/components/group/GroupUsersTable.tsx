@@ -17,25 +17,22 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useState } from "react";
 import DeleteUserModal from "../../components/user/DeleteUserModal";
 import { useDeleteUser } from "@/app/hooks/user/useDeleteUser";
-import { getRoleFromToken } from "@/app/lib/getRoleFromToken";
+import { useCurrentUser } from "@/app/hooks/auth/useCurrentUser";
 
 export default function GroupUsersTable() {
   const { data: groups, isLoading } = useGetGroups();
   const deleteUserMutation = useDeleteUser();
-  const [tokenDecode] = useState(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    return getRoleFromToken(token);
-  });
+  const { data: currentUser } = useCurrentUser();
 
   const currentGroup = groups?.find(
-    (group) => group.creator.id === tokenDecode?.id
+    (group) => group.creator.id === currentUser?.id
   );
 
   const [deleteUser, setDeleteUser] = useState<{
     id: string;
     name: string;
   } | null>(null);
+
   const [toast, setToast] = useState(false);
 
   const handleDeleteConfirm = () => {
@@ -57,7 +54,7 @@ export default function GroupUsersTable() {
     );
 
   const groupsToRender =
-    tokenDecode?.role === "ADMIN" && currentGroup ? [currentGroup] : groups;
+    currentUser?.role === "ADMIN" && currentGroup ? [currentGroup] : groups;
 
   return (
     <Paper className="p-4">
@@ -86,18 +83,20 @@ export default function GroupUsersTable() {
                           <TableCell>
                             {user.name ?? "—"} ({user.email ?? "—"})
                           </TableCell>
-                          <TableCell>
-                            <IconButton
-                              onClick={() =>
-                                setDeleteUser({
-                                  id: user.id,
-                                  name: user.name,
-                                })
-                              }
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
+                          {currentUser!.role !== "ADMIN" && (
+                            <TableCell>
+                              <IconButton
+                                onClick={() =>
+                                  setDeleteUser({
+                                    id: user.id,
+                                    name: user.name,
+                                  })
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

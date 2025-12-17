@@ -23,5 +23,5 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  id?: string;
+  groupId?: string;
 }

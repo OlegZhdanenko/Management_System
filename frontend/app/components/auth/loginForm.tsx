@@ -28,7 +28,6 @@ export default function LoginForm() {
         setError(e?.response?.data?.message || "Login failed");
       },
     });
-    router.push("/dashboard");
   };
 
   return (
