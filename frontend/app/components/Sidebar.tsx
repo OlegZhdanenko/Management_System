@@ -15,7 +15,7 @@ export default function Sidebar() {
 
   if (!mounted) return null;
   return (
-    <aside className="w-72 p-6 border-r flex flex-col">
+    <aside className=" w-72 h-full border-r p-6 flex flex-col bg-white dark:bg-gray-800">
       <h2 className="text-xl font-bold mb-4">Management system</h2>
 
       {currentUser && (

@@ -29,6 +29,9 @@ model user {
   groupsCreated groups[] @relation("groupsCreatedByUser")
   groups     groups[] @relation("UserGroups")
   notes      notes[]
+  
+  verify        Boolean  @default(false)
+  verifyToken   String?
 }
 
 model notes {

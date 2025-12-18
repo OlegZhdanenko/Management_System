@@ -14,6 +14,7 @@ async function main() {
       email: 'ROOT_ADMIN@example.com',
       password: hashedPassword,
       role: 'ROOT_ADMIN',
+      verify: true,
     },
   });
 

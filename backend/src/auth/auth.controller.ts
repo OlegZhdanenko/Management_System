@@ -17,11 +17,15 @@ import { RegisterDto } from './dto.ts/register.dto.js';
 import { LoginDto } from './dto.ts/login.dto.js';
 import { LocalAuthGuard } from './local-auth.guard.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { VerifyUserDto } from './dto.ts/verify-user.dto.js';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-
+  @Post('verify')
+  verify(@Body() dto: VerifyUserDto) {
+    return this.authService.verifyUser(dto);
+  }
   @Post('register')
   @HttpCode(HttpStatus.OK)
   async register(@Body() dto: RegisterDto) {

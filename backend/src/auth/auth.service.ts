@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -9,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service.js';
 import { RegisterDto } from './dto.ts/register.dto.js';
 import { LoginDto } from './dto.ts/login.dto.js';
+import { VerifyUserDto } from './dto.ts/verify-user.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -63,7 +66,9 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-
+    if (!user?.verify) {
+      throw new ForbiddenException('Account is not verified');
+    }
     if (!user) {
       throw new UnauthorizedException('Email or password incorrect');
     }
@@ -96,5 +101,28 @@ export class AuthService {
       throw new NotFoundException('user not found');
     }
     return user;
+  }
+  async verifyUser(dto: VerifyUserDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user || user.verify) {
+      throw new BadRequestException('Invalid verification request');
+    }
+
+    if (user.verifyToken !== dto.token) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verify: true,
+        verifyToken: null,
+      },
+    });
+
+    return { message: 'Account verified successfully' };
   }
 }

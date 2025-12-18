@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { GroupModule } from './group/group.module';
 import { NotesModule } from './note/note.module';
 import { CaslModule } from './casl/casl.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CaslModule } from './casl/casl.module';
     GroupModule,
     NotesModule,
     CaslModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

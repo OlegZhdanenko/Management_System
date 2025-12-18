@@ -38,7 +38,11 @@ export class UserController {
   getAllAdmin() {
     return this.service.findAllAdmin();
   }
-
+  @Get(':id')
+  @CheckAbilities({ action: Action.Read, subject: 'user' })
+  getUserById(@Param('id') id: string) {
+    return this.service.getOneUser(id);
+  }
   @Post('createAdmin')
   @CheckAbilities({ action: Action.Manage, subject: 'user' })
   createAdmin(@Body() dto: CreateUserDto) {

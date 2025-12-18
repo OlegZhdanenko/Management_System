@@ -4,15 +4,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/create.user.dto';
 import { user as UserModel } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
+  ) {}
 
   private toReadUser(user: UserModel) {
     const { password, ...rest } = user;
@@ -21,7 +26,7 @@ export class UserService {
 
   async create(dto: CreateUserDto, currentUser: UserModel) {
     if (currentUser.role === 'USER') {
-      throw new ForbiddenException('ADMIN must assign groupppp');
+      throw new ForbiddenException('ADMIN must assign group');
     }
 
     const exists = await this.prisma.user.findUnique({
@@ -34,7 +39,7 @@ export class UserService {
     }
 
     const hash = await bcrypt.hash(dto.password, 10);
-
+    const verifyToken = randomUUID();
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -42,14 +47,20 @@ export class UserService {
         name: dto.name,
         role: 'USER',
         groups: dto.groupId ? { connect: [{ id: dto.groupId }] } : undefined,
+        verifyToken,
       },
     });
 
+    await this.mailService.sendWelcomeEmail(user.email, user.name, verifyToken);
     return this.toReadUser(user);
   }
 
   async createAdmin(dto: CreateUserDto, groupId?: string) {
     const hash = await bcrypt.hash(dto.password, 10);
+    const verifyToken = randomUUID();
+    console.log({ verifyToken });
+
+    console.log(typeof verifyToken);
 
     const user = await this.prisma.user.create({
       data: {
@@ -58,9 +69,10 @@ export class UserService {
         name: dto.name,
         role: 'ADMIN',
         groups: groupId ? { connect: [{ id: groupId }] } : undefined,
+        verifyToken,
       },
     });
-
+    await this.mailService.sendWelcomeEmail(user.email, user.name, verifyToken);
     return this.toReadUser(user);
   }
 
@@ -125,5 +137,17 @@ export class UserService {
       throw new NotFoundException('Admins not found!');
     }
     return users;
+  }
+  async getOneUser(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        notes: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('Admins not found!');
+    }
+    return user;
   }
 }

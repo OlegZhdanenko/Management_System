@@ -18,6 +18,7 @@ import { useState } from "react";
 import DeleteUserModal from "../../components/user/DeleteUserModal";
 import { useDeleteUser } from "@/app/hooks/user/useDeleteUser";
 import { useCurrentUser } from "@/app/hooks/auth/useCurrentUser";
+import { User } from "../../types/types";
 
 export default function GroupUsersTable() {
   const { data: groups, isLoading } = useGetGroups();
@@ -78,7 +79,7 @@ export default function GroupUsersTable() {
                 {group.users?.length ? (
                   <Table>
                     <TableBody>
-                      {group.users.map((user: any) => (
+                      {group.users.map((user: User) => (
                         <TableRow key={user.id}>
                           <TableCell>
                             {user.name ?? "—"} ({user.email ?? "—"})

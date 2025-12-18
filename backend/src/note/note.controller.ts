@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -34,7 +35,7 @@ export class NotesController {
     return this.notesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @CheckAbilities({ action: Action.Update, subject: 'notes' })
   update(@Param('id') id: string, @Body() dto: UpdateNoteDto) {
     return this.notesService.update(id, dto);
