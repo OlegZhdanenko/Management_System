@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useCurrentUser } from "../hooks/auth/useCurrentUser";
 import { useLogout } from "../hooks/auth/useLogout";
 import Link from "next/link";
+import { Toaster } from "react-hot-toast";
 
 export default function Sidebar() {
   const { data: currentUser, isLoading } = useCurrentUser();
@@ -20,6 +21,7 @@ export default function Sidebar() {
 
       {currentUser && (
         <nav className="flex flex-col gap-2 mb-6">
+          <Toaster position="top-right" />
           <Link href="/dashboard">Dashboard</Link>
           {currentUser?.role === "ROOT_ADMIN" && (
             <Link href="/group">Create group</Link>

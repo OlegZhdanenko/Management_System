@@ -11,10 +11,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create.user.dto';
-
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CaslGuard } from 'src/casl/casl.guard';
-
 import { CheckAbilities } from 'src/casl/decorators';
 import { Action } from 'src/casl/casl.types';
 
@@ -25,7 +23,7 @@ export class UserController {
 
   @Post()
   @CheckAbilities({ action: Action.Create, subject: 'user' })
-  create(@Body() dto: CreateUserDto, @Req() req) {
+  create(@Body() dto: CreateUserDto, @Req() req: any) {
     return this.service.create(dto, req.user);
   }
   @Get('all')

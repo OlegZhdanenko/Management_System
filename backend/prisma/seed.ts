@@ -22,5 +22,13 @@ async function main() {
 }
 
 main()
-  .catch((e) => console.error(e))
-  .finally(() => prisma.$disconnect());
+  .catch((e: unknown) => {
+    if (e instanceof Error) {
+      console.error('Error:', e.message);
+    } else {
+      console.error('Unexpected error:', e);
+    }
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

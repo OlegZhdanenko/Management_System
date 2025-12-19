@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { UserFormValues } from "../../components/user/createUserForm";
 import { api } from "../../lib/axios";
+import toast from "react-hot-toast";
 
 export function useCreateAdmin() {
   return useMutation({
@@ -11,5 +12,7 @@ export function useCreateAdmin() {
       });
       return res;
     },
+    onSuccess: () => toast.success("You create admin for group successfully"),
+    onError: () => toast.error("Failed create admin for group "),
   });
 }

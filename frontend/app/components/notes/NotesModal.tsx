@@ -72,7 +72,6 @@ export default function NotesModal({ open, onClose, userId }: NotesModalProps) {
       { ...data, userId },
       {
         onSuccess: (newNote) => {
-          enqueueSnackbar("Note created", { variant: "success" });
           setNotes((prev) => [...prev, newNote]);
           reset();
         },
@@ -96,15 +95,10 @@ export default function NotesModal({ open, onClose, userId }: NotesModalProps) {
     const note = notes.find((n) => n.id === id);
     if (!note) return;
 
-    updateNote.mutate(
-      { id, note: { title: note.title, content: note.content } },
-      {
-        onSuccess: () =>
-          enqueueSnackbar("Note updated", { variant: "success" }),
-        onError: () =>
-          enqueueSnackbar("Failed to update note", { variant: "error" }),
-      }
-    );
+    updateNote.mutate({
+      id,
+      note: { title: note.title, content: note.content },
+    });
   };
 
   const handleDelete = (id: string) => {
@@ -131,7 +125,6 @@ export default function NotesModal({ open, onClose, userId }: NotesModalProps) {
           </div>
         ) : (
           <>
-            {/* Create note */}
             <form onSubmit={handleSubmit(onCreate)} className="space-y-3">
               <TextField
                 label="Title"
@@ -154,7 +147,6 @@ export default function NotesModal({ open, onClose, userId }: NotesModalProps) {
               </Button>
             </form>
 
-            {/* Notes list */}
             <Table>
               <TableBody>
                 {notes.length ? (

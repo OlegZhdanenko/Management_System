@@ -8,26 +8,24 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma.service.js';
-import { RegisterDto } from './dto.ts/register.dto.js';
-import { LoginDto } from './dto.ts/login.dto.js';
-import { VerifyUserDto } from './dto.ts/verify-user.dto.js';
+import { AuthRepository } from './auth.repository';
+import { RegisterDto } from './dto.ts/register.dto';
+import { LoginDto } from './dto.ts/login.dto';
+import { VerifyUserDto } from './dto.ts/verify-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
   verifyToken(token: string): { email: string; id: string } {
-    return this.jwtService.verify(token, { secret: 'SECRET_KEY' });
+    return this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
   }
 
   async validateAdmin(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.authRepository.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('Email or password incorrect');
@@ -36,41 +34,38 @@ export class AuthService {
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-      throw new UnauthorizedException('Email or password incorrec');
+      throw new UnauthorizedException('Email or password incorrect');
     }
 
     return user;
   }
 
   async register(dto: RegisterDto) {
-    const isExists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (isExists) {
+    const exists = await this.authRepository.findByEmail(dto.email);
+
+    if (exists) {
       throw new ConflictException('User already exist');
     }
+
     const hash = await bcrypt.hash(dto.password, 10);
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        name: dto.name,
-        email: dto.email,
-        password: hash,
-        role: dto.role,
-      },
+    return this.authRepository.create({
+      name: dto.name,
+      email: dto.email,
+      password: hash,
+      role: dto.role,
     });
-    return newUser;
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (!user?.verify) {
-      throw new ForbiddenException('Account is not verified');
-    }
+    const user = await this.authRepository.findByEmail(dto.email);
+
     if (!user) {
       throw new UnauthorizedException('Email or password incorrect');
+    }
+
+    if (!user.verify) {
+      throw new ForbiddenException('Account is not verified');
     }
 
     const isValid = await bcrypt.compare(dto.password, user.password);
@@ -82,30 +77,28 @@ export class AuthService {
     const payload = { id: user.id, email: user.email, role: user.role };
 
     return {
-      token: this.jwtService.sign(payload, { secret: 'SECRET_KEY' }),
+      token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET }),
     };
   }
 
   async logout(email: string) {
-    await this.prisma.user.update({
-      where: { email: email },
-      data: { token: null },
-    });
+    await this.authRepository.updateByEmail(email);
 
     return { message: 'Logged out successfully' };
   }
 
   async getUserByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email: email } });
+    const user = await this.authRepository.findByEmail(email);
+
     if (!user) {
       throw new NotFoundException('user not found');
     }
+
     return user;
   }
+
   async verifyUser(dto: VerifyUserDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    const user = await this.authRepository.findByEmail(dto.email);
 
     if (!user || user.verify) {
       throw new BadRequestException('Invalid verification request');
@@ -115,12 +108,9 @@ export class AuthService {
       throw new BadRequestException('Invalid verification token');
     }
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        verify: true,
-        verifyToken: null,
-      },
+    await this.authRepository.updateById(user.id, {
+      verify: true,
+      verifyToken: null,
     });
 
     return { message: 'Account verified successfully' };

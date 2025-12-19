@@ -4,13 +4,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLogin } from "../../hooks/auth/useLogin";
-
 import { useRouter } from "next/navigation";
 import { TextField, Button, Box } from "@mui/material";
-import { useSnackbar } from "notistack";
 
 interface LoginFormProps {
   onNeedVerify: (email: string) => void;
+  toggleMode: () => void;
 }
 
 const schema = z.object({
@@ -20,32 +19,29 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export default function LoginForm({ onNeedVerify }: LoginFormProps) {
-  const { enqueueSnackbar } = useSnackbar();
+export default function LoginForm({
+  onNeedVerify,
+  toggleMode,
+}: LoginFormProps) {
   const router = useRouter();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+
+  const { register, handleSubmit, formState } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
 
-  const mutation = useLogin();
+  const loginMutation = useLogin();
 
-  const onSubmit = (data: FormValues) => {
-    mutation.mutate(data, {
+  const onSubmit = (values: FormValues) => {
+    loginMutation.mutate(values, {
       onSuccess: (data) => {
         if (data.needsVerification) {
           onNeedVerify(data.email);
-          enqueueSnackbar("Please verify your account", { variant: "info" });
         } else {
-          enqueueSnackbar("Login successful", { variant: "success" });
           router.push("/dashboard");
         }
       },
-      onError: (error: any) => {
-        enqueueSnackbar(error.message || "Login failed", { variant: "error" });
+      onError: () => {
+        toggleMode();
       },
     });
   };
@@ -59,22 +55,22 @@ export default function LoginForm({ onNeedVerify }: LoginFormProps) {
       <TextField
         label="Email"
         {...register("email")}
-        error={!!errors.email}
-        helperText={errors.email?.message}
+        error={!!formState.errors.email}
+        helperText={formState.errors.email?.message}
         fullWidth
       />
       <TextField
         label="Password"
         type="password"
         {...register("password")}
-        error={!!errors.password}
-        helperText={errors.password?.message}
+        error={!!formState.errors.password}
+        helperText={formState.errors.password?.message}
         fullWidth
       />
       <Button
         type="submit"
         variant="contained"
-        disabled={isSubmitting || mutation.isLoading}
+        // disabled={formState.isSubmitting || loginMutation.isLoading}
       >
         Login
       </Button>

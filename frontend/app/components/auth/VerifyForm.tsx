@@ -4,8 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { TextField, Button, Box } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
-import { useSnackbar } from "notistack";
+import { useVerify } from "@/app/hooks/auth/useVerify";
 
 interface VerifyFormProps {
   email: string;
@@ -14,13 +13,12 @@ interface VerifyFormProps {
 
 const verifySchema = z.object({
   token: z.string().min(1, "Verification token is required"),
+  email: z.string().email("Invalid email"),
 });
 
 type VerifyFormValues = z.infer<typeof verifySchema>;
 
 export default function VerifyForm({ email, onVerified }: VerifyFormProps) {
-  const { enqueueSnackbar } = useSnackbar();
-
   const {
     register,
     handleSubmit,
@@ -29,29 +27,18 @@ export default function VerifyForm({ email, onVerified }: VerifyFormProps) {
     resolver: zodResolver(verifySchema),
   });
 
-  const verifyMutation = useMutation({
-    mutationFn: async (data: VerifyFormValues) => {
-      const res = await fetch("/api/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token: data.token }),
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Verification failed");
-      return result;
-    },
-    onSuccess: () => {
-      enqueueSnackbar("Account verified successfully", { variant: "success" });
-      onVerified();
-    },
-    onError: (error: any) => {
-      enqueueSnackbar(error.message || "Verification failed", {
-        variant: "error",
-      });
-    },
-  });
+  const verifyMutation = useVerify();
 
-  const onSubmit = (values: VerifyFormValues) => verifyMutation.mutate(values);
+  const onSubmit = (values: VerifyFormValues) => {
+    verifyMutation.mutate(
+      { token: values.token, email: email || values.email },
+      {
+        onSuccess: () => {
+          onVerified();
+        },
+      }
+    );
+  };
 
   return (
     <Box
@@ -66,10 +53,17 @@ export default function VerifyForm({ email, onVerified }: VerifyFormProps) {
         helperText={errors.token?.message}
         fullWidth
       />
+      <TextField
+        label="Enter your email"
+        {...register("email")}
+        error={!!errors.email}
+        helperText={errors.email?.message}
+        fullWidth
+      />
       <Button
         type="submit"
         variant="contained"
-        // disabled={isSubmitting || verifyMutation.isLoading}
+        disabled={verifyMutation.isPending}
       >
         Verify
       </Button>

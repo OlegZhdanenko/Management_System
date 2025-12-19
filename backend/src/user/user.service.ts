@@ -5,17 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from 'src/prisma.service';
-import { CreateUserDto } from './dto/create.user.dto';
-import { user as UserModel } from '@prisma/client';
-import { MailService } from '../mail/mail.service';
 
+import { CreateUserDto } from './dto/create.user.dto';
+import { MailService } from '../mail/mail.service';
+import { UserRepository } from './user.repository';
+import { user as UserModel } from '@prisma/client';
 @Injectable()
 export class UserService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepository: UserRepository,
     private readonly mailService: MailService,
   ) {}
 
@@ -29,124 +28,108 @@ export class UserService {
       throw new ForbiddenException('ADMIN must assign group');
     }
 
-    const exists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-      include: { groups: true },
-    });
-
+    const exists = await this.userRepository.findByEmail(dto.email);
     if (exists) {
       throw new ConflictException('User with this email already exists');
     }
 
     const hash = await bcrypt.hash(dto.password, 10);
     const verifyToken = randomUUID();
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hash,
-        name: dto.name,
-        role: 'USER',
-        groups: dto.groupId ? { connect: [{ id: dto.groupId }] } : undefined,
-        verifyToken,
-      },
+
+    const user = await this.userRepository.create({
+      email: dto.email,
+      password: hash,
+      name: dto.name,
+      role: 'USER',
+      groups: dto.groupId ? { connect: [{ id: dto.groupId }] } : undefined,
+      verifyToken,
     });
 
     await this.mailService.sendWelcomeEmail(user.email, user.name, verifyToken);
+
     return this.toReadUser(user);
   }
 
   async createAdmin(dto: CreateUserDto, groupId?: string) {
+    const exists = await this.userRepository.findByEmail(dto.email);
+    if (exists) {
+      throw new ConflictException('Admin with this email already exists');
+    }
+
     const hash = await bcrypt.hash(dto.password, 10);
     const verifyToken = randomUUID();
-    console.log({ verifyToken });
 
-    console.log(typeof verifyToken);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hash,
-        name: dto.name,
-        role: 'ADMIN',
-        groups: groupId ? { connect: [{ id: groupId }] } : undefined,
-        verifyToken,
-      },
+    const user = await this.userRepository.create({
+      email: dto.email,
+      password: hash,
+      name: dto.name,
+      role: 'ADMIN',
+      groups: groupId ? { connect: [{ id: groupId }] } : undefined,
+      verifyToken,
     });
+
     await this.mailService.sendWelcomeEmail(user.email, user.name, verifyToken);
+
     return this.toReadUser(user);
   }
 
   async delete(id: string) {
-    await this.prisma.user.findUniqueOrThrow({ where: { id } });
-    return this.prisma.user.delete({ where: { id } });
+    await this.userRepository.findByIdOrThrow(id);
+    return this.userRepository.delete(id);
   }
 
   async assignAdminToGroup(userId: string, groupId: string) {
-    const existing = await this.prisma.groups.findFirst({
-      where: { createdBy: userId },
-    });
+    const existingGroup = await this.userRepository.findGroupCreatedBy(userId);
 
-    if (existing) {
-      const ROOTADMIN = await this.prisma.user.findUnique({
-        where: { email: 'ROOT_ADMIN@example.com' },
-      });
-      await this.prisma.groups.update({
-        where: { id: existing.id },
-        data: { createdBy: ROOTADMIN!.id },
+    if (existingGroup) {
+      const rootAdmin = await this.userRepository.findByEmail(
+        'ROOT_ADMIN@example.com',
+      );
+
+      if (!rootAdmin) {
+        throw new NotFoundException('Root admin not found');
+      }
+
+      await this.userRepository.updateGroup(existingGroup.id, {
+        createdBy: rootAdmin.id,
       });
     }
 
-    await this.prisma.groups.update({
-      where: { id: groupId },
-      data: { createdBy: userId },
+    await this.userRepository.updateGroup(groupId, {
+      createdBy: userId,
     });
 
     return { message: 'Admin reassigned' };
   }
+
   async findAll() {
-    const users = await this.prisma.user.findMany();
-    if (!users) {
+    const users = await this.userRepository.findAll();
+    if (!users.length) {
       throw new NotFoundException('Users not found!');
     }
     return users;
   }
+
   async findAllUsers() {
-    const users = await this.prisma.user.findMany({
-      where: {
-        role: 'USER',
-      },
-      include: {
-        notes: true,
-        groups: {
-          include: {
-            creator: true,
-          },
-        },
-      },
-    });
-
-    if (!users) {
+    const users = await this.userRepository.findAllUsers();
+    if (!users.length) {
       throw new NotFoundException('Users not found!');
     }
     return users;
   }
-  async findAllAdmin() {
-    const users = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
 
-    if (!users) {
+  async findAllAdmin() {
+    const admins = await this.userRepository.findAllAdmins();
+    if (!admins.length) {
       throw new NotFoundException('Admins not found!');
     }
-    return users;
+    return admins;
   }
+
   async getOneUser(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        notes: true,
-      },
-    });
+    const user = await this.userRepository.findById(id);
     if (!user) {
-      throw new NotFoundException('Admins not found!');
+      throw new NotFoundException('User not found!');
     }
     return user;
   }

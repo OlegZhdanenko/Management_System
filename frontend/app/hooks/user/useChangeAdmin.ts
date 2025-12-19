@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../lib/axios";
+import toast from "react-hot-toast";
 
 interface ChangeAdminPayload {
   groupId: string;
@@ -16,9 +17,10 @@ export function useChangeAdmin() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      toast.success("You change admin for group successfully");
     },
-    onError: (err) => {
-      console.error("Failed to change admin", err);
+    onError: () => {
+      toast.error("Failed to change admin");
     },
   });
 }

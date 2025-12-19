@@ -8,4 +8,6 @@ export class ReadUserDto {
   groupId?: string;
   createdAt!: Date;
   updatedAt!: Date;
+  verify: boolean;
+  verifyToken: string | null;
 }

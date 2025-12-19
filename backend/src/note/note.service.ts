@@ -1,27 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
+import { NotesRepository } from './notes.repository';
 
 @Injectable()
 export class NotesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly notesRepository: NotesRepository) {}
 
   async create(dto: CreateNoteDto) {
-    return this.prisma.notes.create({
-      data: {
-        title: dto.title,
-        content: dto.content,
-        createdBy: dto.userId,
-      },
+    const { title, content, userId } = dto;
+
+    return this.notesRepository.create({
+      title,
+      content,
+      userId,
     });
   }
 
   async findOne(id: string) {
-    const note = await this.prisma.notes.findUnique({
-      where: { id },
-      include: { user: true },
-    });
+    const note = await this.notesRepository.findById(id);
 
     if (!note) {
       throw new NotFoundException('Note not found');
@@ -33,20 +31,12 @@ export class NotesService {
   async update(id: string, dto: UpdateNoteDto) {
     await this.findOne(id);
 
-    return this.prisma.notes.update({
-      where: { id },
-      data: {
-        ...dto,
-        updated_at: new Date(),
-      },
-    });
+    return this.notesRepository.update(id, { ...dto, updated_at: new Date() });
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    return this.prisma.notes.delete({
-      where: { id },
-    });
+    return this.notesRepository.delete(id);
   }
 }

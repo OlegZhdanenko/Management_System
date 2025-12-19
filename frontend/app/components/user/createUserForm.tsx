@@ -13,7 +13,6 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { useSnackbar } from "notistack";
 
 import { useCreateUser } from "../../hooks/user/useCreateUser";
 import { useState } from "react";
@@ -33,7 +32,6 @@ const userSchema = z.object({
 export type UserFormValues = z.infer<typeof userSchema>;
 
 export default function CreateUserForm() {
-  const { enqueueSnackbar } = useSnackbar();
   const { data: currentUser } = useCurrentUser();
   const createUser = useCreateUser();
   const { data: groups = [] } = useGetGroups();
@@ -60,7 +58,6 @@ export default function CreateUserForm() {
       { name: newGroupName },
       {
         onSuccess: (group) => {
-          enqueueSnackbar("Group created!", { variant: "success" });
           {
             setValue("groupId", group.id);
           }
@@ -76,12 +73,8 @@ export default function CreateUserForm() {
     }
     createUser.mutate(data, {
       onSuccess: () => {
-        enqueueSnackbar("User created successfully!", { variant: "success" });
         reset();
         router.push("/dashboard");
-      },
-      onError: () => {
-        enqueueSnackbar("Failed to create user", { variant: "error" });
       },
     });
   };

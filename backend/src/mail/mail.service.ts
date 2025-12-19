@@ -25,7 +25,7 @@ export class MailService {
         <h2>Hello, ${name} 👋</h2>
         <p>Your account has been successfully created.</p>
         <p>You can now log in to the system.</p>
-        <p>Please enter your verify key ${verifyToken}</p>
+        <p>Please click on the <a href="http://localhost:3000">Link</a> and  enter your verify key ${verifyToken}</p>
         <hr />
         <small>Management System</small>
       `,

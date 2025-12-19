@@ -3,8 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextField, Button, Paper, Typography } from "@mui/material";
-import { useSnackbar } from "notistack";
+import { TextField, Button, Typography } from "@mui/material";
 import { useCreateGroup } from "../../hooks/group/useCreateGroup";
 import { useRouter } from "next/navigation";
 
@@ -15,7 +14,6 @@ const groupSchema = z.object({
 export type GroupFormValues = z.infer<typeof groupSchema>;
 
 export default function CreateGroupForm() {
-  const { enqueueSnackbar } = useSnackbar();
   const createGroup = useCreateGroup();
   const router = useRouter();
 
@@ -29,18 +27,14 @@ export default function CreateGroupForm() {
   const onSubmit = (data: GroupFormValues) => {
     createGroup.mutate(data, {
       onSuccess: () => {
-        enqueueSnackbar("Group created successfully!", { variant: "success" });
         reset();
         router.push("/dashboard");
-      },
-      onError: () => {
-        enqueueSnackbar("Failed to create group", { variant: "error" });
       },
     });
   };
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 500 }}>
+    <div className="p-6 max-w-md">
       <Typography variant="h5" mb={2}>
         Create Group
       </Typography>
@@ -59,6 +53,6 @@ export default function CreateGroupForm() {
           Create
         </Button>
       </form>
-    </Paper>
+    </div>
   );
 }

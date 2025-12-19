@@ -1,12 +1,26 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { AxiosError } from "axios";
 import { api } from "../../lib/axios";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+interface LoginPayload {
+  email: string;
+  password: string;
+}
 
+interface ApiError {
+  message: string;
+}
+
+interface LoginResponse {
+  token?: string;
+  needsVerification?: boolean;
+  email: string;
+}
 export const useLogin = () => {
   const qc = useQueryClient();
   const router = useRouter();
-  return useMutation<LoginResponse, Error, LoginPayload>({
+  return useMutation<LoginResponse, AxiosError<ApiError>, LoginPayload>({
     mutationFn: async (payload: LoginPayload) => {
       const { data } = await api.post("/auth/login", payload);
       return data;
@@ -20,7 +34,13 @@ export const useLogin = () => {
       qc.invalidateQueries({
         queryKey: ["currentUser"],
       });
-      router.push("/dashboard");
+      if (!data.needsVerification) {
+        router.push("/dashboard");
+      }
+      toast.success("Successfully login!");
+    },
+    onError: (err) => {
+      toast.error(`${err.response?.data.message}`);
     },
   });
 };

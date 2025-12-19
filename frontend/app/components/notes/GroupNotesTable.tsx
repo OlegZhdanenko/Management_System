@@ -13,9 +13,7 @@ import { useGetUsers } from "../../hooks/user/useGetUsers";
 import { useState } from "react";
 import NotesModal from "./NotesModal";
 import EditIcon from "@mui/icons-material/Edit";
-
 import { useCurrentUser } from "@/app/hooks/auth/useCurrentUser";
-import { Group } from "../../types/types";
 
 export default function GroupNotesTable() {
   const { data: users, isLoading } = useGetUsers();
@@ -29,7 +27,7 @@ export default function GroupNotesTable() {
     filteredUsers = filteredUsers.filter((u) => u.id === currentUser.id);
   } else if (currentUser?.role === "ADMIN") {
     filteredUsers = filteredUsers.filter((u) =>
-      u.groups?.some((g: Group) => g.creator?.id === currentUser.id)
+      u.groups?.some((g) => g.creator?.id === currentUser.id)
     );
   }
 

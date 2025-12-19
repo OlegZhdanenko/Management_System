@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/app/lib/axios";
+import toast from "react-hot-toast";
 
 export function useDeleteUser() {
   const queryClient = useQueryClient();
@@ -13,6 +14,8 @@ export function useDeleteUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
+      toast.success("You delete user successfully");
     },
+    onError: () => toast.error("Failed to delete user"),
   });
 }
